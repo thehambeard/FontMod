@@ -31,7 +31,7 @@ public static class FontSwapperInit
     [HarmonyPostfix]
     static void StoreResourcePatch(object resource, string guid)
     {
-        if (TMP_FontAsset != null && resource is GameObject gameObject)
+         if (resource is GameObject gameObject)
             SetTexts(gameObject);
     }
 
@@ -45,6 +45,8 @@ public static class FontSwapperInit
 
     private static void SetTexts(GameObject gameObject)
     {
+        if (TMP_FontAsset == null) return;
+
         var texts = gameObject.GetComponentsInChildren<TextMeshProUGUI>();
 
         for (int i = 0; i < texts.Length; i++)
