@@ -1,9 +1,4 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using UnityModManagerNet;
 
@@ -12,12 +7,14 @@ namespace FontMod;
 #if DEBUG
 [EnableReloading]
 #endif
-public static class Main {
+public static class Main
+{
     internal static Harmony HarmonyInstance;
     internal static UnityModManager.ModEntry.ModLogger Log;
     internal static UnityModManager.ModEntry ModEntry;
 
-    public static bool Load(UnityModManager.ModEntry modEntry) {
+    public static bool Load(UnityModManager.ModEntry modEntry)
+    {
         Log = modEntry.Logger;
         ModEntry = modEntry;
 #if DEBUG
@@ -29,12 +26,14 @@ public static class Main {
         return true;
     }
 
-    public static void OnGUI(UnityModManager.ModEntry modEntry) {
+    public static void OnGUI(UnityModManager.ModEntry modEntry)
+    {
 
     }
 
 #if DEBUG
-    public static bool OnUnload(UnityModManager.ModEntry modEntry) {
+    public static bool OnUnload(UnityModManager.ModEntry modEntry)
+    {
         HarmonyInstance.UnpatchAll(modEntry.Info.Id);
         return true;
     }

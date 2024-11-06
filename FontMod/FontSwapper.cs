@@ -1,16 +1,11 @@
-﻿using UnityEngine;
-using HarmonyLib;
-using TMPro;
+﻿using HarmonyLib;
 using Kingmaker;
-using System.IO;
-using System.Linq;
-using Kingmaker.Code.UI.MVVM.View.MainMenu.PC;
-using Kingmaker.Code.UI.MVVM.View.MainMenu.Common;
-using Kingmaker.Code.UI.MVVM.View.ContextMenu.Common;
-using Kingmaker.Blueprints;
-using Kingmaker.ResourceLinks.BaseInterfaces;
 using Kingmaker.Modding;
 using Owlcat.Runtime.UI.MVVM;
+using System.IO;
+using System.Linq;
+using TMPro;
+using UnityEngine;
 
 namespace FontMod;
 
@@ -32,7 +27,6 @@ public static class FontSwapperInit
             Main.Log.Error("Unable to load TMP_FontAsset.");
     }
 
-
     [HarmonyPatch(typeof(OwlcatModificationsManager), nameof(OwlcatModificationsManager.OnResourceLoaded))]
     [HarmonyPostfix]
     static void StoreResourcePatch(object resource, string guid)
@@ -41,9 +35,13 @@ public static class FontSwapperInit
             SetTexts(gameObject);
     }
 
-    [HarmonyPatch(typeof(ViewBase<IViewModel>), "Bind")]
+    [HarmonyPatch(typeof(ViewBase<IViewModel>), nameof(ViewBase<IViewModel>.Bind))]
     [HarmonyPostfix]
-    static void BindPatch(ViewBase<IViewModel> __instance, IViewModel viewModel) => SetTexts(__instance.gameObject);
+    static void BindPatch(ViewBase<IViewModel> __instance) => SetTexts(__instance.gameObject);
+
+    [HarmonyPatch(typeof(ViewBase<IViewModel>), nameof(ViewBase<IViewModel>.AddDisposable))]
+    [HarmonyPostfix]
+    static void AddDisposablePatch(ViewBase<IViewModel> __instance) => SetTexts(__instance.gameObject);
 
     private static void SetTexts(GameObject gameObject)
     {
