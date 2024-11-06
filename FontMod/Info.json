@@ -1,0 +1,12 @@
+﻿{
+  "Id": "FontMod",
+  "DisplayName": "Font Modifier",
+  "Author": "",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.25.0",
+  "Requirements": [],
+  "AssemblyName": "FontMod.dll",
+  "EntryMethod": "FontMod.Main.Load",
+  "HomePage": "",
+  "Repository": ""
+}
