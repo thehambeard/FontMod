@@ -43,7 +43,7 @@ public static class FontSwapperInit
     [HarmonyPostfix]
     static void AddDisposablePatch(ViewBase<IViewModel> __instance) => SetTexts(__instance.gameObject);
 
-    private static void SetTexts(GameObject gameObject)
+    static void SetTexts(GameObject gameObject)
     {
         if (TMP_FontAsset == null) return;
 
