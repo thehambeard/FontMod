@@ -1,58 +1,65 @@
-﻿using HarmonyLib;
-using Kingmaker;
-using Kingmaker.Modding;
-using Owlcat.Runtime.UI.MVVM;
-using System.IO;
-using System.Linq;
+﻿using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace FontMod;
 
-[HarmonyPatch]
-public static class FontSwapperInit
+public class FontSwapper
 {
-    static TMP_FontAsset TMP_FontAsset;
+    private static FontSwapper _instance;
+    public readonly FontMapper FontMapper;
 
-    [HarmonyPatch(typeof(GameStarter), nameof(GameStarter.FixTMPAssets))]
-    [HarmonyPostfix]
-    static void LoadBundle()
+    public static FontSwapper Instance
     {
-        var fontBundle = AssetBundle
-            .LoadFromFile(Path.Combine(Main.ModEntry.Path, "fontasset"));
-
-        TMP_FontAsset = fontBundle.LoadAsset<TMP_FontAsset>(fontBundle.GetAllAssetNames().First());
-
-        if (TMP_FontAsset == null)
-            Main.Log.Error("Unable to load TMP_FontAsset.");
-    }
-
-    [HarmonyPatch(typeof(OwlcatModificationsManager), nameof(OwlcatModificationsManager.OnResourceLoaded))]
-    [HarmonyPostfix]
-    static void StoreResourcePatch(object resource, string guid)
-    {
-         if (resource is GameObject gameObject)
-            SetTexts(gameObject);
-    }
-
-    [HarmonyPatch(typeof(ViewBase<IViewModel>), nameof(ViewBase<IViewModel>.Bind))]
-    [HarmonyPostfix]
-    static void BindPatch(ViewBase<IViewModel> __instance) => SetTexts(__instance.gameObject);
-
-    [HarmonyPatch(typeof(ViewBase<IViewModel>), nameof(ViewBase<IViewModel>.AddDisposable))]
-    [HarmonyPostfix]
-    static void AddDisposablePatch(ViewBase<IViewModel> __instance) => SetTexts(__instance.gameObject);
-
-    static void SetTexts(GameObject gameObject)
-    {
-        if (TMP_FontAsset == null) return;
-
-        var texts = gameObject.GetComponentsInChildren<TextMeshProUGUI>();
-
-        for (int i = 0; i < texts.Length; i++)
+        get
         {
-            texts[i].m_fontAsset = TMP_FontAsset;
-            texts[i].UpdateFontAsset();
+            if (_instance == null)
+                _instance = new();
+
+            return _instance;
+        }
+    }
+
+    private FontSwapper()
+    {
+        FontMapper = new();
+        SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
+    }
+
+    private void SceneManager_sceneUnloaded(Scene arg0) => FontMapper.SaveAll();
+    private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1) => FontMapper.SaveAll();
+
+    public void Swap(GameObject gameObject)
+    {
+        try
+        {
+            if (gameObject == null)
+                throw new ArgumentNullException("Font swap failed due to GameObject being null");
+
+            var texts = gameObject.GetComponentsInChildren<TextMeshProUGUI>();
+
+            for (int i = 0; i < texts.Length; i++)
+            {
+                var font = FontMapper.GetFontMapped(texts[i].font.name);
+
+                if (font != null)
+                {
+                    bool isActive = texts[i].gameObject.activeSelf;
+
+                    if (isActive)
+                        texts[i].gameObject.SetActive(false);
+
+                    texts[i].m_fontAsset = font.TMP_FontAsset;
+                    texts[i].UpdateFontAsset();
+                    texts[i].gameObject.SetActive(isActive);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Main.Logger.Error(e);
         }
     }
 }
