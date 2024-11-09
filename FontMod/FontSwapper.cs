@@ -38,7 +38,7 @@ public class FontSwapper
             if (gameObject == null)
                 throw new ArgumentNullException("Font swap failed due to GameObject being null");
 
-            var texts = gameObject.GetComponentsInChildren<TextMeshProUGUI>();
+            var texts = gameObject.GetComponentsInChildren<TextMeshProUGUI>(includeInactive: true);
 
             for (int i = 0; i < texts.Length; i++)
             {

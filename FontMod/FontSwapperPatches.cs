@@ -1,5 +1,7 @@
 ﻿using FontMod.Utility;
 using HarmonyLib;
+using Kingmaker.Code.UI.MVVM.View.LoadingScreen.PC;
+using Kingmaker.UI.Legacy.LoadingScreen;
 using Owlcat.Runtime.UI.MVVM;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ namespace FontMod;
 public class FontSwapperPatches : IModEventHandler
 {
     public int Priority => 100;
+    private Harmony _harmonyInstance = new(Main.ModEntry.Info.Id);
 
     public static List<Type> GetAllDerivedTypesOfViewBase()
     {
@@ -51,8 +54,6 @@ public class FontSwapperPatches : IModEventHandler
 
     public void PatchAllViewBase()
     {
-        Harmony harmonyInstance = new(Main.ModEntry.Info.Id);
-
         foreach (var type in GetAllDerivedTypesOfViewBase())
         {
             var bindMethod = type.GetMethod("BindViewImplementation", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -60,12 +61,24 @@ public class FontSwapperPatches : IModEventHandler
             if (bindMethod == null || bindMethod.IsAbstract)
                 continue;
 
-            try
-            {
-                var patch = typeof(BindPatch).GetMethod(nameof(BindPatch.Patch));
-                harmonyInstance.Patch(bindMethod, postfix: new HarmonyMethod(patch));
-            }
-            catch { }
+            PatchHelper(bindMethod);
+        }
+    }
+
+    private void PatchHelper(MethodInfo methodInfo)
+    {
+        if (methodInfo == null)
+            return;
+
+        try
+        {
+            var patch = typeof(BindPatch).GetMethod(nameof(BindPatch.Patch));
+            _harmonyInstance.Patch(methodInfo, postfix: new HarmonyMethod(patch));
+            Main.Logger.Debug($"Patched: {methodInfo.DeclaringType.Name}");
+        }
+        catch 
+        {
+            Main.Logger.Debug($"Skipped Patch (invalid method): {methodInfo.DeclaringType.Name}");
         }
     }
 
