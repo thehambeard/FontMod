@@ -42,6 +42,9 @@ public class FontSwapper
 
             for (int i = 0; i < texts.Length; i++)
             {
+                if (texts[i].font == null)
+                    continue;
+
                 var font = FontMapper.GetFontMapped(texts[i].font.name);
 
                 if (font != null)
