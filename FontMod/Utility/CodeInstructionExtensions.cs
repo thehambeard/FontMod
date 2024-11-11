@@ -27,7 +27,7 @@ namespace FontMod.Utility
             ie = codes.GetEnumerator();
             for (int i = 0; ie.MoveNext(); i++)
                 print($"L_{i:X4}: {ie.Current.opcode}" +
-                    (ie.Current.operand == null ? 
+                    (ie.Current.operand == null ?
                     string.Empty : $" {(ie.Current.operand is Label l ? labels[l] : ie.Current.operand)}"));
             print("==== End Dumping Instructions ====");
 
@@ -116,19 +116,19 @@ namespace FontMod.Utility
             return codes.Concat(new CodeInstruction[] { newCode });
         }
 
-        public static IEnumerable<CodeInstruction> AddRange(this IEnumerable<CodeInstruction> codes, 
+        public static IEnumerable<CodeInstruction> AddRange(this IEnumerable<CodeInstruction> codes,
             IEnumerable<CodeInstruction> newCodes)
         {
             return codes.Concat(newCodes);
         }
 
-        public static IEnumerable<CodeInstruction> Insert(this IEnumerable<CodeInstruction> codes, 
+        public static IEnumerable<CodeInstruction> Insert(this IEnumerable<CodeInstruction> codes,
             int index, CodeInstruction newCode, bool moveLabelsAtIndex = false)
         {
             return codes.InsertRange(index, new CodeInstruction[] { newCode }, moveLabelsAtIndex);
         }
 
-        public static IEnumerable<CodeInstruction> InsertRange(this IEnumerable<CodeInstruction> codes, 
+        public static IEnumerable<CodeInstruction> InsertRange(this IEnumerable<CodeInstruction> codes,
             int index, IEnumerable<CodeInstruction> newCodes, bool moveLabelsFromIndex = false)
         {
             if (moveLabelsFromIndex)
@@ -142,7 +142,7 @@ namespace FontMod.Utility
             return codes.RemoveRange(index, 1, moveLabelsFromIndex);
         }
 
-        public static IEnumerable<CodeInstruction> RemoveRange(this IEnumerable<CodeInstruction> codes, 
+        public static IEnumerable<CodeInstruction> RemoveRange(this IEnumerable<CodeInstruction> codes,
             int index, int count, bool moveLabelsFromIndex = false)
         {
             if (moveLabelsFromIndex)
@@ -150,7 +150,7 @@ namespace FontMod.Utility
             return codes.Take(index).Concat(codes.Skip(index + count));
         }
 
-        public static IEnumerable<CodeInstruction> Replace(this IEnumerable<CodeInstruction> codes, 
+        public static IEnumerable<CodeInstruction> Replace(this IEnumerable<CodeInstruction> codes,
             int index, CodeInstruction newCode, bool moveLabelsFromIndex = false)
         {
             return codes.ReplaceRange(index, 1, new CodeInstruction[] { newCode }, moveLabelsFromIndex);
@@ -185,8 +185,8 @@ namespace FontMod.Utility
             return codes.ReplaceAll(findingCodes, newCodes, out int replaced, moveLabelsFromIndex, comparer);
         }
 
-        public static IEnumerable<CodeInstruction> ReplaceAll(this IEnumerable<CodeInstruction> codes, 
-            IEnumerable<CodeInstruction> findingCodes, IEnumerable<CodeInstruction> newCodes, 
+        public static IEnumerable<CodeInstruction> ReplaceAll(this IEnumerable<CodeInstruction> codes,
+            IEnumerable<CodeInstruction> findingCodes, IEnumerable<CodeInstruction> newCodes,
             out int replaced, bool moveLabelsFromIndex = false, IEqualityComparer<CodeInstruction> comparer = null)
         {
             replaced = 0;
@@ -203,8 +203,8 @@ namespace FontMod.Utility
                     {
                         codes = (newCodesCount > 0) ?
                             codes.ReplaceRange(i, findingCodesCount, (moveLabelsFromIndex && replaced > 0) ?
-                                new CodeInstruction[] { newCodes.First().Clone() }.Concat(newCodes.Skip(1)) : newCodes, 
-                                moveLabelsFromIndex):
+                                new CodeInstruction[] { newCodes.First().Clone() }.Concat(newCodes.Skip(1)) : newCodes,
+                                moveLabelsFromIndex) :
                             codes.RemoveRange(i, findingCodesCount, moveLabelsFromIndex);
                         replaced++;
                         i -= findingCodesCount;
@@ -251,7 +251,7 @@ namespace FontMod.Utility
             return code;
         }
 
-        public static void MoveLabels(this IEnumerable<CodeInstruction> codes, 
+        public static void MoveLabels(this IEnumerable<CodeInstruction> codes,
             int index, IEnumerable<CodeInstruction> targetCodes, int targetIndex)
         {
             List<Label> labels = codes.Item(index).labels;
@@ -259,7 +259,7 @@ namespace FontMod.Utility
             labels.Clear();
         }
 
-        public static void MoveLabels(this IEnumerable<CodeInstruction> codes, 
+        public static void MoveLabels(this IEnumerable<CodeInstruction> codes,
             int index, IEnumerable<CodeInstruction> targetCodes, int targetIndex, IEnumerable<Label> skipLabels)
         {
             List<Label> source = codes.Item(index).labels;
@@ -328,19 +328,19 @@ namespace FontMod.Utility
             return codes.FindCodes(findingCodes, new CodeInstructionMatchComparer());
         }
 
-        public static int FindCodes(this IEnumerable<CodeInstruction> codes, 
+        public static int FindCodes(this IEnumerable<CodeInstruction> codes,
             int startIndex, IEnumerable<CodeInstruction> findingCodes)
         {
             return codes.FindCodes(startIndex, findingCodes, new CodeInstructionMatchComparer());
         }
 
-        public static int FindCodes(this IEnumerable<CodeInstruction> codes, 
+        public static int FindCodes(this IEnumerable<CodeInstruction> codes,
             IEnumerable<CodeInstruction> findingCodes, IEqualityComparer<CodeInstruction> comparer)
         {
             return codes.FindCodes(0, findingCodes, comparer);
         }
 
-        public static int FindCodes(this IEnumerable<CodeInstruction> codes, 
+        public static int FindCodes(this IEnumerable<CodeInstruction> codes,
             int startIndex, IEnumerable<CodeInstruction> findingCodes, IEqualityComparer<CodeInstruction> comparer)
         {
             if (findingCodes.Any())
@@ -355,13 +355,13 @@ namespace FontMod.Utility
             return -1;
         }
 
-        public static int FindLastCodes(this IEnumerable<CodeInstruction> codes, 
+        public static int FindLastCodes(this IEnumerable<CodeInstruction> codes,
             IEnumerable<CodeInstruction> findingCodes)
         {
             return codes.FindLastCodes(findingCodes, new CodeInstructionMatchComparer());
         }
 
-        public static int FindLastCodes(this IEnumerable<CodeInstruction> codes, 
+        public static int FindLastCodes(this IEnumerable<CodeInstruction> codes,
             IEnumerable<CodeInstruction> findingCodes, IEqualityComparer<CodeInstruction> comparer)
         {
             if (findingCodes.Any())
@@ -376,13 +376,13 @@ namespace FontMod.Utility
             return -1;
         }
 
-        public static bool MatchCodes(this IEnumerable<CodeInstruction> codes, 
+        public static bool MatchCodes(this IEnumerable<CodeInstruction> codes,
             int startIndex, IEnumerable<CodeInstruction> matchingCodes)
         {
             return codes.MatchCodes(startIndex, matchingCodes, new CodeInstructionMatchComparer());
         }
 
-        public static bool MatchCodes(this IEnumerable<CodeInstruction> codes, 
+        public static bool MatchCodes(this IEnumerable<CodeInstruction> codes,
             int startIndex, IEnumerable<CodeInstruction> matchingCodes, IEqualityComparer<CodeInstruction> comparer)
         {
             return codes.Skip(startIndex).Take(matchingCodes.Count()).SequenceEqual(matchingCodes, comparer);

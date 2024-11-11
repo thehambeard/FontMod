@@ -18,7 +18,7 @@ public class FontDataModel
     public Font Font { get; private set; }
     [JsonIgnore]
     public TMP_FontAsset TMP_FontAsset { get; private set; }
-    
+
 
     private FontDataModel() { }
 

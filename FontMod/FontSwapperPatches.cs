@@ -1,14 +1,9 @@
 ﻿using FontMod.Utility;
 using HarmonyLib;
-using Owlcat.Runtime.UI.MVVM;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using TMPro;
-using UnityEngine;
 namespace FontMod;
 
 [HarmonyPatch]

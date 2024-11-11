@@ -1,13 +1,8 @@
-﻿using System;
-using System.Drawing;
-using System.Linq;
-using TMPro;
+﻿using System.Linq;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
 using UnityModManagerNet;
 using static FontMod.UI_UMM.UMMHelpers;
-using static Kingmaker.Sound.AudioFilePackagesSettings;
 
 namespace FontMod.UI_UMM;
 public static class UMMMenu
@@ -80,7 +75,7 @@ public static class UMMMenu
             {
                 FontMapper.Instance.Swap(gObj);
             }
-                
+
         }, 200f);
         HScope(() =>
         {
@@ -182,7 +177,7 @@ public static class UMMMenu
                                 FontMapper.Instance.ToggleIgnored(font);
                             });
 
-                            
+
                         });
                     }
 
