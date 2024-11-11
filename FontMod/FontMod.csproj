@@ -39,10 +39,10 @@
 		<PackageReference Include="MicroUtils.HarmonyAnalyzers" IncludeAssets="runtime; build; native; contentfiles; analyzers" Version="*-*" PrivateAssets="all" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="Fonts\Fancy_sans.ttf">
+	  <None Update="Fonts\Ldfcomicsans-jj7l.ttf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Fonts\Ldfcomicsans-jj7l.ttf">
+	  <None Update="Fonts\No Name Sans.ttf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
