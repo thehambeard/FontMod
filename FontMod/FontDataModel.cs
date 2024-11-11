@@ -1,17 +1,26 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 using TMPro;
 using UnityEngine;
 
 namespace FontMod;
 
+[Serializable]
 public class FontDataModel
 {
-    public string Name { get; private set; }
+    [JsonProperty]
+    public string Name { get; set; }
+    [JsonProperty]
+    public bool IsIgnored { get; set; }
 
+    [JsonIgnore]
     public Font Font { get; private set; }
-
+    [JsonIgnore]
     public TMP_FontAsset TMP_FontAsset { get; private set; }
+    
+
+    private FontDataModel() { }
 
     private FontDataModel(Font font)
     {
@@ -48,10 +57,9 @@ public class FontDataModel
             return hash;
         }
     }
-
+    public static FontDataModel CreateEmptyIgnored() => new() { IsIgnored = true };
     public static FontDataModel CreateFromFont(Font font) => new(font);
     public static FontDataModel CreateFromFontPath(string path) => new(LoadFontFromFile(path));
-
     public static TMP_FontAsset CreateFontAsset(Font font)
     {
         TMP_FontAsset asset = null;
@@ -70,6 +78,8 @@ public class FontDataModel
         {
             Main.Logger.Error(e);
         }
+
+        MaterialReferenceManager.AddFontAsset(asset);
 
         return asset;
     }

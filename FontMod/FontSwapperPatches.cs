@@ -1,97 +1,66 @@
 ﻿using FontMod.Utility;
 using HarmonyLib;
-using Kingmaker.Code.UI.MVVM.View.LoadingScreen.PC;
-using Kingmaker.UI.Legacy.LoadingScreen;
 using Owlcat.Runtime.UI.MVVM;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
+using TMPro;
 using UnityEngine;
-
 namespace FontMod;
 
-public class FontSwapperPatches : IModEventHandler
+[HarmonyPatch]
+public static class TMPTestPach
 {
-    public int Priority => 100;
-    private Harmony _harmonyInstance = new(Main.ModEntry.Info.Id);
-
-    public static List<Type> GetAllDerivedTypesOfViewBase()
+    [HarmonyPatch(typeof(TextMeshProUGUI), nameof(TextMeshProUGUI.LoadFontAsset))]
+    [HarmonyPrefix]
+    static void TextPatch(TextMeshProUGUI __instance)
     {
-        var baseType = typeof(ViewBase<>);
-        var assembly = Assembly.LoadFrom(Path.Combine(Application.dataPath, @"Managed\Code.dll"));
-        var derivedTypes = new List<Type>();
-
-        try
-        {
-            derivedTypes.AddRange(assembly.GetTypes()
-                .Where(type => type.IsClass &&
-                               !type.IsAbstract &&
-                               !type.ContainsGenericParameters &&
-                               InheritsFromGenericBase(type, baseType)));
-        }
-        catch (ReflectionTypeLoadException e)
-        {
-            Main.Logger.Error(e);
-        }
-        return derivedTypes;
+        if (__instance.m_fontAsset != null)
+            __instance.m_fontAsset = FontMapper.Instance.GetFontMapped(__instance.m_fontAsset);
     }
 
-    private static bool InheritsFromGenericBase(Type type, Type genericBaseType)
+    [HarmonyPatch(typeof(MaterialReferenceManager), nameof(MaterialReferenceManager.TryGetFontAsset))]
+    [HarmonyPostfix]
+    static void TryGetFontAsset(ref TMP_FontAsset fontAsset)
     {
-        while (type != null && type != typeof(object))
+        if (fontAsset != null)
+            fontAsset = FontMapper.Instance.GetFontMapped(fontAsset);
+    }
+
+    [HarmonyPatch(typeof(TMP_Text), nameof(TMP_Text.ValidateHtmlTag))]
+    [HarmonyTranspiler]
+    static IEnumerable<CodeInstruction> TagPatch(IEnumerable<CodeInstruction> instructions, ILGenerator iLGen)
+    {
+        var method = AccessTools.Method(typeof(MaterialReferenceManager), nameof(MaterialReferenceManager.AddFontAsset));
+
+        var assetIntructions = new CodeInstruction[]
         {
-            var currentType = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
-            if (currentType == genericBaseType)
+            new(OpCodes.Call, method)
+        };
+
+        var instructionIndex = instructions.FindCodes(assetIntructions);
+
+        if (instructionIndex >= 0)
+        {
+            var ldlocs = instructions.ElementAt(instructionIndex - 1);
+
+            var patchCodes = new CodeInstruction[]
             {
-                return true;
-            }
-            type = type.BaseType;
+                new(OpCodes.Call, AccessTools.PropertyGetter(typeof(FontMapper), nameof(FontMapper.Instance))),
+                new(OpCodes.Ldloc_S, ldlocs.operand),
+                new(OpCodes.Callvirt, AccessTools.Method(typeof(FontMapper), nameof(FontMapper.GetFontMapped))),
+                new(OpCodes.Stloc_S, ldlocs.operand)
+            };
+
+            return instructions.InsertRange(instructionIndex, patchCodes, true);
         }
-        return false;
-    }
-
-    public void PatchAllViewBase()
-    {
-        foreach (var type in GetAllDerivedTypesOfViewBase())
+        else
         {
-            var bindMethod = type.GetMethod("BindViewImplementation", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (bindMethod == null || bindMethod.IsAbstract)
-                continue;
-
-            PatchHelper(bindMethod);
-        }
-    }
-
-    private void PatchHelper(MethodInfo methodInfo)
-    {
-        if (methodInfo == null)
-            return;
-
-        try
-        {
-            var patch = typeof(BindPatch).GetMethod(nameof(BindPatch.Patch));
-            _harmonyInstance.Patch(methodInfo, postfix: new HarmonyMethod(patch));
-            Main.Logger.Debug($"Patched: {methodInfo.DeclaringType.Name}");
-        }
-        catch 
-        {
-            Main.Logger.Debug($"Skipped Patch (invalid method): {methodInfo.DeclaringType.Name}");
-        }
-    }
-
-    public void HandleModDisable() { }
-
-    public void HandleModEnable() => PatchAllViewBase();
-
-    private static class BindPatch
-    {
-        public static void Patch(object __instance)
-        {
-            if (__instance != null && __instance is Component comp)
-                FontSwapper.Instance.Swap(comp.gameObject);
+            Main.Logger.Error("TagPatch Transpile Failed.");
+            return instructions;
         }
     }
 }

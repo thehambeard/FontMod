@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -51,16 +52,14 @@ public static class UMMMenu
                 Space(20f);
                 VScope(() =>
                 {
-
-                    foreach (var font in FontSwapper.Instance.FontMapper.InstalledFonts)
+                    foreach (var font in FontMapper.Instance.InstalledFonts)
                     {
                         HScope(() =>
                         {
                             Label($"{font.Name}");
                             Button("M", () =>
                             {
-                                FontSwapper.Instance.FontMapper.SetFontMapping(_currentMappingKey, font);
-                                FontSwapper.Instance.FontMapper.SaveFontMappings();
+                                FontMapper.Instance.SetFontMapping(_currentMappingKey, font, true);
                                 _currentMappingKey = null;
                                 _state = State.Main;
                             });
@@ -79,7 +78,7 @@ public static class UMMMenu
                 .GetActiveScene()
                 .GetRootGameObjects())
             {
-                FontSwapper.Instance.Swap(gObj);
+                FontMapper.Instance.Swap(gObj);
             }
                 
         }, 200f);
@@ -95,7 +94,7 @@ public static class UMMMenu
                     Space(20f);
                     VScope(() =>
                     {
-                        foreach (var fonts in FontSwapper.Instance.FontMapper.InstalledFonts)
+                        foreach (var fonts in FontMapper.Instance.InstalledFonts)
                             Label($"{fonts.Name}");
                     }, new(GUI.skin.box));
                 });
@@ -111,7 +110,7 @@ public static class UMMMenu
                     Space(20f);
                     VScope(() =>
                     {
-                        foreach (var fonts in FontSwapper.Instance.FontMapper.EncounteredFontNames)
+                        foreach (var fonts in FontMapper.Instance.EncounteredFontNames)
                             Label($"{fonts}");
                     }, new(GUI.skin.box));
                 });
@@ -124,8 +123,12 @@ public static class UMMMenu
         VScope(() =>
         {
             Label("Current Mappings:");
-            Label("(default cannot be deleted)");
-            Label("(null mappings will use default font)");
+            Label("(X button will deleted current mapping)");
+            Label("(M button will let you select a mapping)");
+            Label("(I button will set to ignore all mappings)");
+            Label("(Unassigned mappings will use default font)");
+            Label("(Ignore mappings will use in-game font)");
+
             HScope(() =>
             {
                 Space(20f);
@@ -133,36 +136,36 @@ public static class UMMMenu
                 {
                     var removeKey = string.Empty;
 
-                    foreach (var mappings in FontSwapper.Instance.FontMapper.FontMappings)
+                    foreach (var mapping in FontMapper.Instance.FontMappings)
                     {
                         HScope(() =>
                         {
-                            Label($"{mappings.Key} => {mappings.Value.Name}");
+                            Label($"{mapping.Key} => {(mapping.Value.IsIgnored ? "ignored" : mapping.Value.Name)}");
 
                             Button("M", () =>
                             {
-                                _currentMappingKey = mappings.Key;
+                                _currentMappingKey = mapping.Key;
                                 _state = State.Mapping;
                             });
 
-                            if (mappings.Key != FontSwapper.Instance.FontMapper.DefaultKey)
+                            if (!FontMapper.Instance.IsDefaultKey(mapping.Key))
                             {
                                 Button("X", () =>
                                 {
-                                    removeKey = mappings.Key;
+                                    removeKey = mapping.Key;
+                                });
+
+                                Button("I", () =>
+                                {
+                                    if (!FontMapper.Instance.ToggleIgnored(mapping.Key) && string.IsNullOrEmpty(mapping.Value.Name))
+                                        removeKey = mapping.Key;
                                 });
                             }
                         });
                     }
 
-                    if (!string.IsNullOrEmpty(removeKey))
-                    {
-                        FontSwapper.Instance.FontMapper.RemoveFontMapping(removeKey);
-                        FontSwapper.Instance.FontMapper.SaveFontMappings();
-                    }
-
-                    foreach (var font in FontSwapper.Instance.FontMapper.EncounteredFontNames
-                        .Except(FontSwapper.Instance.FontMapper.FontMappings.Select(x => x.Key)))
+                    foreach (var font in FontMapper.Instance.EncounteredFontNames
+                        .Where(item => !FontMapper.Instance.FontMappings.ContainsKey(item)))
                     {
                         HScope(() =>
                         {
@@ -173,8 +176,19 @@ public static class UMMMenu
                                 _currentMappingKey = font;
                                 _state = State.Mapping;
                             });
+
+                            Button("I", () =>
+                            {
+                                FontMapper.Instance.ToggleIgnored(font);
+                            });
+
+                            
                         });
                     }
+
+                    if (!string.IsNullOrEmpty(removeKey))
+                        FontMapper.Instance.RemoveFontMapping(removeKey);
+
                 }, new(GUI.skin.box));
             });
         });

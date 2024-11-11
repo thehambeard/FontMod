@@ -6,10 +6,10 @@ using GL = UnityEngine.GUILayout;
 namespace FontMod.UI_UMM;
 public static class UMMHelpers
 {
-    public static readonly GUIStyle ButtonStyleFixed = new(GUI.skin.button) { fixedWidth = 75f };
-    public static readonly GUIStyle LabelStyleFixed = new(GUI.skin.label) { fixedWidth = 300f };
+    public static readonly GUIStyle ButtonStyleFixed = new(GUI.skin.button) { fixedWidth = 50f };
+    public static readonly GUIStyle LabelStyleFixed = new(GUI.skin.label) { fixedWidth = 340f };
     public static readonly GUIStyle VScopeStyleFixed = new() { fixedWidth = 600f };
-    public static readonly GUIStyle HScopeStyleFixed = new() { fixedWidth = 500f };
+    public static readonly GUIStyle HScopeStyleFixed = new() { fixedWidth = 600f };
     public static readonly GUILayoutOption[] _falseWidth = [GL.ExpandWidth(false)];
 
     public static void Button(string text, Action action, float width) => Button(text, action, new GUIStyle(GUI.skin.button) { fixedWidth = width });

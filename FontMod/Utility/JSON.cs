@@ -17,18 +17,16 @@ internal class JSON
     {
         return JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings
         {
-            TypeNameHandling = TypeNameHandling.All
+            TypeNameHandling = TypeNameHandling.None
         });
     }
 
-    public static T LoadJSONFromFile<T>(string filePath) where T : class, new()
+    public static T LoadJSONFromFile<T>(string filePath)
     {
-        T obj = default;
-
         if (File.Exists(filePath))
-            obj = JSON.FromJSON<T>(File.ReadAllText(filePath));
+            return JSON.FromJSON<T>(File.ReadAllText(filePath));
 
-        return obj;
+        return default;
     }
 
     public static void SaveJSONToFile<T>(string path, T obj)
