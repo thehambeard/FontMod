@@ -4,8 +4,8 @@
 	<PropertyGroup>
 		<TargetFramework>net481</TargetFramework>
 		<AssemblyName>FontMod</AssemblyName>
-		<Description>Font Modifier</Description>
-		<Version>1.0.0</Version>
+		<Description>FontMod</Description>
+		<Version>1.1.0</Version>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<LangVersion>latest</LangVersion>
 		<RootNamespace>FontMod</RootNamespace>
@@ -20,28 +20,22 @@
     <Reference Include="$(WrathInstallDir)\Wrath_Data\Managed\Newtonsoft.Json.dll*" Private="false" />
     <Reference Include="$(WrathInstallDir)\Wrath_Data\Managed\UnityModManager\0Harmony.dll*" Private="false" />
 	</ItemGroup>
-	<ItemGroup>
-		<None Include="Info.json" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="Info.json" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <None Update="Fonts\Ldfcomicsans-jj7l.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fonts\No Name Sans.ttf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 	<Target Name="Deploy" AfterTargets="Build">
 		<ItemGroup>
 			<Files Include="$(TargetDir)\**\*.*" />
 		</ItemGroup>
     <Copy SourceFiles="@(Files)" DestinationFiles="@(Files->'$(WrathInstallDir)\Mods\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
-		<ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version).zip" Overwrite="true" />
+		<ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version)-WOTR.zip" Overwrite="true" />
 	</Target>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" IncludeAssets="build; contentfiles" Version="0.4.2" PrivateAssets="all" />
 		<PackageReference Include="MicroUtils.HarmonyAnalyzers" IncludeAssets="runtime; build; native; contentfiles; analyzers" Version="*-*" PrivateAssets="all" />
-	</ItemGroup>
-	<ItemGroup>
-	  <None Update="Fonts\Ldfcomicsans-jj7l.ttf">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Fonts\No Name Sans.ttf">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
 	</ItemGroup>
   <Target Name="GenerateCustomPropsFile" BeforeTargets="BeforeBuild" Condition="$(WrathInstallDir) == ''">
     <Exec Command="findstr /C:&quot;Mono path[0]&quot; &quot;$(WrathData)\Player.log&quot;" IgnoreExitCode="true" ConsoleToMSBuild="true">
