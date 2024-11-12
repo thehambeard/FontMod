@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityModManagerNet;
+using FontMod.FontSwap;
 using static FontMod.UI_UMM.UMMHelpers;
 
 namespace FontMod.UI_UMM;
