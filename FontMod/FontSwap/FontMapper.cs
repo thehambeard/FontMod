@@ -7,7 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace FontMod;
+namespace FontMod.FontSwap;
 public class FontMapper
 {
     private readonly string _defaultKey = "default";

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using TMPro;
-namespace FontMod;
+namespace FontMod.FontSwap;
 
 [HarmonyPatch]
 public static class TMPTestPach

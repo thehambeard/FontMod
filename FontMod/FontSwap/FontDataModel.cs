@@ -4,7 +4,7 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 
-namespace FontMod;
+namespace FontMod.FontSwap;
 
 [Serializable]
 public class FontDataModel
