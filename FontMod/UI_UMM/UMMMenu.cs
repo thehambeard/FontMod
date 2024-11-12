@@ -68,16 +68,6 @@ public static class UMMMenu
 
     private static void OnGUIMain()
     {
-        Button("Refresh Scene Fonts", () =>
-        {
-            foreach (var gObj in SceneManager
-                .GetActiveScene()
-                .GetRootGameObjects())
-            {
-                FontMapper.Instance.Swap(gObj);
-            }
-
-        }, 200f);
         HScope(() =>
         {
             VScope(() =>
