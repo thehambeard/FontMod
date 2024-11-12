@@ -2,11 +2,11 @@
   "Id": "FontMod",
   "DisplayName": "FontMod",
   "Author": "Hambeard",
-  "Version": "1.0.0",
+  "Version": "1.1.0",
   "ManagerVersion": "0.25.0",
   "Requirements": [],
   "AssemblyName": "FontMod.dll",
   "EntryMethod": "FontMod.Main.Load",
   "HomePage": "",
-  "Repository": ""
+  "Repository": "https://github.com/thehambeard/FontMod"
 }
