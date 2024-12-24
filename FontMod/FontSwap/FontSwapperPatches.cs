@@ -10,7 +10,7 @@ namespace FontMod.FontSwap;
 public static class TMPTestPach
 {
 
-#if RogueTrader
+#if RT
     static bool _afterDelay = false;
 
     [HarmonyPatch(typeof(Kingmaker.GameStarter), nameof(Kingmaker.GameStarter.FixTMPAssets))]
@@ -24,7 +24,7 @@ public static class TMPTestPach
     static void TextPatch(TextMeshProUGUI __instance)
     {
 
-#if RogueTrader
+#if RT
         if (!_afterDelay)
             return;
 #endif
@@ -37,7 +37,7 @@ public static class TMPTestPach
     static void TryGetFontAsset(ref TMP_FontAsset fontAsset)
     {
 
-#if RogueTrader
+#if RT
         if (!_afterDelay)
             return;
 #endif
