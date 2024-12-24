@@ -13,18 +13,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		KM_Debug|Any CPU = KM_Debug|Any CPU
-		KM_Release|Any CPU = KM_Release|Any CPU
 		RT_Debug|Any CPU = RT_Debug|Any CPU
 		RT_Release|Any CPU = RT_Release|Any CPU
 		WOTR_Debug|Any CPU = WOTR_Debug|Any CPU
 		WOTR_Release|Any CPU = WOTR_Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.KM_Debug|Any CPU.ActiveCfg = KM_Debug|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.KM_Debug|Any CPU.Build.0 = KM_Debug|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.KM_Release|Any CPU.ActiveCfg = KM_Release|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.KM_Release|Any CPU.Build.0 = KM_Release|Any CPU
 		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Debug|Any CPU.ActiveCfg = RT_Debug|Any CPU
 		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Debug|Any CPU.Build.0 = RT_Debug|Any CPU
 		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Release|Any CPU.ActiveCfg = RT_Release|Any CPU
