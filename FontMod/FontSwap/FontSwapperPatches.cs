@@ -9,25 +9,11 @@ namespace FontMod.FontSwap;
 [HarmonyPatch]
 public static class TMPTestPach
 {
-
-#if RT
-    static bool _afterDelay = false;
-
-    [HarmonyPatch(typeof(Kingmaker.GameStarter), nameof(Kingmaker.GameStarter.FixTMPAssets))]
-    [HarmonyPostfix]
-    static void DelaySwapping() => _afterDelay = true;
-    
-#endif
-
     [HarmonyPatch(typeof(TextMeshProUGUI), nameof(TextMeshProUGUI.LoadFontAsset))]
     [HarmonyPrefix]
     static void TextPatch(TextMeshProUGUI __instance)
     {
 
-#if RT
-        if (!_afterDelay)
-            return;
-#endif
         if (__instance.m_fontAsset != null)
             __instance.m_fontAsset = FontMapper.Instance.GetFontMapped(__instance.m_fontAsset);
     }
@@ -36,12 +22,6 @@ public static class TMPTestPach
     [HarmonyPostfix]
     static void TryGetFontAsset(ref TMP_FontAsset fontAsset)
     {
-
-#if RT
-        if (!_afterDelay)
-            return;
-#endif
-
         if (fontAsset != null)
             fontAsset = FontMapper.Instance.GetFontMapped(fontAsset);
     }

@@ -1,8 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Drawing;
 using System.IO;
 using TMPro;
+using TMPro.EditorUtilities;
 using UnityEngine;
+using static RootMotion.FinalIK.GrounderQuadruped;
 
 namespace FontMod.FontSwap;
 
@@ -13,25 +16,23 @@ public class FontDataModel
     public string Name { get; set; }
     [JsonProperty]
     public bool IsIgnored { get; set; }
-
     [JsonIgnore]
-    public Font Font { get; private set; }
+    public string FontPath { get; set; }
     [JsonIgnore]
     public TMP_FontAsset TMP_FontAsset { get; private set; }
 
-
     private FontDataModel() { }
 
-    private FontDataModel(Font font)
+    private FontDataModel(string fontPath)
     {
         try
         {
-            if (font == null)
+            if (fontPath == null)
                 throw new ArgumentNullException("null font in creation of FontDataModel.");
 
-            Font = font;
-            Name = font.name;
-            TMP_FontAsset = CreateFontAsset(font);
+            FontPath = fontPath;
+            Name = Path.GetFileNameWithoutExtension(fontPath);
+            TMP_FontAsset = CreateFontAsset(fontPath);
         }
         catch (Exception e)
         {
@@ -42,7 +43,7 @@ public class FontDataModel
     public override bool Equals(object obj)
     {
         if (obj is FontDataModel other)
-            return Equals(Font, other.Font) && Equals(TMP_FontAsset, other.TMP_FontAsset);
+            return Equals(FontPath, other.FontPath) && Equals(TMP_FontAsset, other.TMP_FontAsset);
 
         return false;
     }
@@ -52,60 +53,47 @@ public class FontDataModel
         unchecked
         {
             int hash = 17;
-            hash = hash * 31 + (Font != null ? Font.GetHashCode() : 0);
+            hash = hash * 31 + (FontPath != null ? FontPath.GetHashCode() : 0);
             hash = hash * 31 + (TMP_FontAsset != null ? TMP_FontAsset.GetHashCode() : 0);
             return hash;
         }
     }
     public static FontDataModel CreateEmptyIgnored() => new() { IsIgnored = true };
-    public static FontDataModel CreateFromFont(Font font) => new(font);
-    public static FontDataModel CreateFromFontPath(string path) => new(LoadFontFromFile(path));
-    public static TMP_FontAsset CreateFontAsset(Font font)
+    public static FontDataModel CreateFromPath(string fontPath) => new(fontPath);
+    public static TMP_FontAsset CreateFontAsset(string fontPath)
     {
         TMP_FontAsset asset = null;
 
         try
         {
-            asset = TMP_FontAsset.CreateFontAsset(font);
-            asset.name = font.name;
-
-            if (asset == null)
-                throw new NullReferenceException($"Creation of TMP_FontAsset failed for font {font.name}");
-            else
-                Main.Logger.Log($"Created font asset {asset.name}");
-        }
-        catch (Exception e)
-        {
-            Main.Logger.Error(e);
-        }
-
-        MaterialReferenceManager.AddFontAsset(asset);
-
-        return asset;
-    }
-
-    public static Font LoadFontFromFile(string fontPath)
-    {
-        Font font = null;
-        try
-        {
             if (!File.Exists(fontPath))
                 throw new FileNotFoundException($"File not found: {fontPath}");
+            
+            var name = Path.GetFileNameWithoutExtension(fontPath);
 
-            font = new(fontPath)
-            {
-                name = Path.GetFileNameWithoutExtension(fontPath)
-            };
+            var create = new TMPro_FontAssetCreatorWindow();
+            create.font_TTF_path = fontPath;
+            create.GenerateFontAtlas();
+            create.CreateFontTexture();
 
-            if (font == null)
-                throw new InvalidOperationException($"failed to load font from path {font}");
+            asset = create.Save_SDF_FontAsset();
+
+            if (asset == null)
+                throw new NullReferenceException($"Creation of TMP_FontAsset failed for font {name}");
+            else
+                Main.Logger.Log($"Created font asset {asset.name}");
+
+            asset.name = name;
+
+            if (asset != null)
+                MaterialReferenceManager.AddFontAsset(asset);
         }
         catch (Exception e)
         {
             Main.Logger.Error(e);
         }
 
-        return font;
+        return asset;
     }
 }
 

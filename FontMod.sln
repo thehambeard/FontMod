@@ -1,37 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontMod", "FontMod\FontMod.csproj", "{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{868C0EDF-8A0E-4070-AC7D-0EB5A616FF05}"
-	ProjectSection(SolutionItems) = preProject
-		.gitignore = .gitignore
-		Repository.json = Repository.json
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontMod", "FontMod\FontMod.csproj", "{2CBE776D-7D53-411A-852F-36AE7745649E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		RT_Debug|Any CPU = RT_Debug|Any CPU
-		RT_Release|Any CPU = RT_Release|Any CPU
-		WOTR_Debug|Any CPU = WOTR_Debug|Any CPU
-		WOTR_Release|Any CPU = WOTR_Release|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Debug|Any CPU.ActiveCfg = RT_Debug|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Debug|Any CPU.Build.0 = RT_Debug|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Release|Any CPU.ActiveCfg = RT_Release|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.RT_Release|Any CPU.Build.0 = RT_Release|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.WOTR_Debug|Any CPU.ActiveCfg = WOTR_Debug|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.WOTR_Debug|Any CPU.Build.0 = WOTR_Debug|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.WOTR_Release|Any CPU.ActiveCfg = WOTR_Release|Any CPU
-		{54A8EF4B-704E-475B-8E4C-0DC2FD58CE72}.WOTR_Release|Any CPU.Build.0 = WOTR_Release|Any CPU
+		{2CBE776D-7D53-411A-852F-36AE7745649E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CBE776D-7D53-411A-852F-36AE7745649E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CBE776D-7D53-411A-852F-36AE7745649E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CBE776D-7D53-411A-852F-36AE7745649E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {B2289333-29C9-4315-B57C-5B6C0FC6861C}
 	EndGlobalSection
 EndGlobal
