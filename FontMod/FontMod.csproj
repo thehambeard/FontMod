@@ -36,7 +36,7 @@
     </ItemGroup>
 
     <Copy SourceFiles="@(Files)" DestinationFiles="@(Files->'$(KingmakerInstallDir)\Mods\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version).zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version)-KM.zip" Overwrite="true" />
   </Target>
   
   <ItemGroup>
