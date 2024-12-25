@@ -397,4 +397,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+GamePath.props
 GamePaths.props
