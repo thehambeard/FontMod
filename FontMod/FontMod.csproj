@@ -79,7 +79,7 @@
     </ItemGroup>
     <Copy Condition="'$(DefineConstants)' == 'WOTR' And '$(WrathInstallDir)' != ''" SourceFiles="@(Files)" DestinationFiles="@(Files->'$(WrathInstallDir)\Mods\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy Condition="'$(DefineConstants)' == 'RT' And '$(RogueTraderInstallDir)' != ''" SourceFiles="@(Files)" DestinationFiles="@(Files->'$(RogueTraderInstallDir)\Mods\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version)-$(Configuration)-KM.zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version)-$(Configuration).zip" Overwrite="true" />
   </Target>
 
   <PropertyGroup Condition="Exists('$(WrathData)')">
