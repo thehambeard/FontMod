@@ -2,6 +2,7 @@
 
 ![screenShot](https://raw.githubusercontent.com/thehambeard/FontMod/refs/heads/master/screenShot.png)
 ![screenShot](https://raw.githubusercontent.com/thehambeard/FontMod/refs/heads/master/screenShotWOTR.png)
+![screenShot](https://raw.githubusercontent.com/thehambeard/FontMod/refs/heads/master/screenShotKM.png)
 
 Place fonts in the mod's font folder. 
 
