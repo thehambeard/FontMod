@@ -1,9 +1,12 @@
 ﻿using FontMod.Utility;
 using HarmonyLib;
+using Kingmaker.UI.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 using TMPro;
+using UnityEngine;
 namespace FontMod.FontSwap;
 
 [HarmonyPatch]
@@ -79,4 +82,21 @@ public static class TMPTestPach
             return instructions;
         }
     }
+
+#if !RT
+    // Hack to fix incorrect material.  I think the bigger problem is the material tag not being handled properly.
+    // Will have to prob transpile more in the TMP library.
+
+    [HarmonyPatch(typeof(UIUtility), nameof(UIUtility.GetSaberBookFormat))]
+    [HarmonyPrefix]
+    static void GetSaberBookFormatPatch(string name, Color color, int size, ref Material material)
+    {
+        if (material == null)
+            return;
+
+        material = FontMapper.Instance.FontMappings.ContainsKey("Saber_Dist32") ?
+            FontMapper.Instance.FontMappings["Saber_Dist32"].TMP_FontAsset.material :
+            FontMapper.Instance.DefaultFontMapping.TMP_FontAsset.material;
+    }
+#endif
 }

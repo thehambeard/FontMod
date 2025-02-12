@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#if !KM
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using TMPro;
@@ -108,4 +109,4 @@ public class FontDataModel
         return font;
     }
 }
-
+#endif

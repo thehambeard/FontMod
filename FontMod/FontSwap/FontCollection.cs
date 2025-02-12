@@ -5,6 +5,10 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
+#if KM
+using TMPro.EditorUtilities;
+#endif
+
 namespace FontMod.FontSwap;
 
 public class FontCollection : ICollection<FontDataModel>
@@ -21,13 +25,18 @@ public class FontCollection : ICollection<FontDataModel>
             throw new ArgumentNullException("Cannot add null item to FontCollection");
 
         if (_fontDataModels.Contains(item))
-            throw new ArgumentException($"FontCollection already contains {item.Font.name}");
+            throw new ArgumentException($"FontCollection already contains {item.Name}");
 
         _fontDataModels.Add(item);
     }
 
+#if !KM
     public void Add(Font item) => Add(FontDataModel.CreateFromFont(item));
     public void AddFromFilePath(string fontPath) => Add(FontDataModel.CreateFromFontPath(fontPath));
+#else
+    public void AddFromFilePath(string fontPath) => Add(FontDataModel.CreateFromPath(fontPath));
+#endif
+
     public void AddFromFolderPath(string folderPath)
     {
         if (!Directory.Exists(folderPath))

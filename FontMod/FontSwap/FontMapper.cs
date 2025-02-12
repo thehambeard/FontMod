@@ -18,6 +18,7 @@ public class FontMapper
     public FontCollection InstalledFonts { get; private set; } = [];
     public HashSet<string> EncounteredFontNames { get; private set; }
     public Dictionary<string, FontDataModel> FontMappings { get; private set; }
+    public FontDataModel DefaultFontMapping => FontMappings[_defaultKey];
 
     public static FontMapper Instance
     {
