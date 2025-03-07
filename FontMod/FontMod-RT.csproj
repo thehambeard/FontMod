@@ -5,7 +5,7 @@
     <TargetFramework>net481</TargetFramework>
     <AssemblyName>FontMod</AssemblyName>
     <Description>FontMod</Description>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>FontMod</RootNamespace>
