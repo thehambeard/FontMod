@@ -1,18 +1,20 @@
 ﻿#if KM
 using Newtonsoft.Json;
 using System;
-using System.Drawing;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Kingmaker.Localization;
 using TMPro;
 using TMPro.EditorUtilities;
-using UnityEngine;
-using static RootMotion.FinalIK.GrounderQuadruped;
 
 namespace FontMod.FontSwap;
 
 [Serializable]
 public class FontDataModel
 {
+    private static string requiredCharacters;
+
     [JsonProperty]
     public string Name { get; set; }
     [JsonProperty]
@@ -20,7 +22,20 @@ public class FontDataModel
     [JsonIgnore]
     public string FontPath { get; set; }
     [JsonIgnore]
-    public TMP_FontAsset TMP_FontAsset { get; private set; }
+    public TMP_FontAsset TMP_FontAsset
+    {
+        get
+        {
+            // We're lazy because large fonts (e.g. chinese fonts) can take a lot of time
+            if (tmpFontAsset == null && !IsIgnored && !string.IsNullOrEmpty(FontPath)) {
+                tmpFontAsset = CreateFontAsset(FontPath);
+            }
+
+            return tmpFontAsset;
+        }
+    }
+
+    private TMP_FontAsset tmpFontAsset;
 
     private FontDataModel() { }
 
@@ -33,7 +48,6 @@ public class FontDataModel
 
             FontPath = fontPath;
             Name = Path.GetFileNameWithoutExtension(fontPath);
-            TMP_FontAsset = CreateFontAsset(fontPath);
         }
         catch (Exception e)
         {
@@ -44,7 +58,7 @@ public class FontDataModel
     public override bool Equals(object obj)
     {
         if (obj is FontDataModel other)
-            return Equals(FontPath, other.FontPath) && Equals(TMP_FontAsset, other.TMP_FontAsset);
+            return Equals(FontPath, other.FontPath);
 
         return false;
     }
@@ -55,7 +69,6 @@ public class FontDataModel
         {
             int hash = 17;
             hash = hash * 31 + (FontPath != null ? FontPath.GetHashCode() : 0);
-            hash = hash * 31 + (TMP_FontAsset != null ? TMP_FontAsset.GetHashCode() : 0);
             return hash;
         }
     }
@@ -74,20 +87,22 @@ public class FontDataModel
 
             var create = new TMPro_FontAssetCreatorWindow();
             create.font_TTF_path = fontPath;
+            create.SetCharacterSet(GetRequiredCharacters());
+            var renderType = create.UseBitmapFontAsset ? "bitmap" : "SDF";
+            Main.Logger.Log($"Generating {create.CharacterCount} glyphs for {name} in a {create.AtlasSize}x{create.AtlasSize} {renderType} atlas.");
             create.GenerateFontAtlas();
             create.CreateFontTexture();
 
-            asset = create.Save_SDF_FontAsset();
+            asset = create.UseBitmapFontAsset ? create.Save_Normal_FontAsset() : create.Save_SDF_FontAsset();
 
             if (asset == null)
                 throw new NullReferenceException($"Creation of TMP_FontAsset failed for font {name}");
-            else
-                Main.Logger.Log($"Created font asset {asset.name}");
-
             asset.name = name;
+            asset.ReadFontDefinition();
 
-            if (asset != null)
-                MaterialReferenceManager.AddFontAsset(asset);
+            Main.Logger.Log($"Created font asset {asset.name}");
+
+            MaterialReferenceManager.AddFontAsset(asset);
         }
         catch (Exception e)
         {
@@ -95,6 +110,54 @@ public class FontDataModel
         }
 
         return asset;
+    }
+
+    private static string GetRequiredCharacters()
+    {
+        if (requiredCharacters != null) {
+            return requiredCharacters;
+        }
+
+        var characters = new HashSet<char>();
+        // Printable ASCII is required for TMP rich-text tags and ordinary UI text.
+        for (char character = ' '; character <= '~'; character++) {
+            characters.Add(character);
+        }
+
+        // TMP support characters: non-breaking space, zero-width space, ellipsis, and missing-glyph box.
+        characters.Add('\u00a0');
+        characters.Add('\u200b');
+        characters.Add('\u2026');
+        characters.Add('\u25a1');
+
+        AddLocalizationCharacters(characters, LocalizationManager.CurrentPack);
+        AddLocalizationCharacters(characters, LocalizationManager.CurrentPackFast);
+
+        requiredCharacters = new string(characters.OrderBy(character => character).ToArray());
+        Main.Logger.Log($"Preparing {requiredCharacters.Length} distinct characters for the current Kingmaker localization.");
+        return requiredCharacters;
+    }
+
+    // Caching?
+    private static void AddLocalizationCharacters(HashSet<char> characters, LocalizationPack pack)
+    {
+        if (pack?.Strings == null) {
+            return;
+        }
+
+        foreach (string value in pack.Strings.Values)
+        {
+            if (string.IsNullOrEmpty(value)) {
+                continue;
+            }
+
+            foreach (char character in value)
+            {
+                if (!char.IsControl(character)) {
+                    characters.Add(character);
+                }
+            }
+        }
     }
 }
 
