@@ -41,7 +41,7 @@
     <ItemGroup>
       <Files Include="$(TargetDir)\**\*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(Files)" DestinationFiles="@(Files->'$(RogueTraderInstallDir)\Mods\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(Files)" DestinationFiles="@(Files->'$(RogueTraderData)\UnityModManager\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
     <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\$(OutputPath)" DestinationFile="$(MSBuildProjectDirectory)\$(OutputPath)\..\$(AssemblyName)-$(Version)-RT.zip" Overwrite="true" />
   </Target>
 

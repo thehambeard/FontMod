@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -102,6 +103,11 @@ namespace TMPro.EditorUtilities
         private Texture2D m_destination_Atlas;
         private bool includeKerningPairs = true;
         private int[] m_kerningSet;
+        private KerningTable m_kerningTable;
+
+        private const string FontAtlasCacheMagic = "FontModAtlas";
+        private const int FontAtlasCacheVersion = 2;
+        private const int MaxKerningPairCount = 7500;
 
         // Allocate a large enough atlas.
         // The sizes are guesses; a smaller atlas might be good enough?
@@ -131,6 +137,179 @@ namespace TMPro.EditorUtilities
 
             font_atlas_width = atlasSize;
             font_atlas_height = atlasSize;
+        }
+
+        public bool TryLoadFontAtlasCache(string path)
+        {
+            if (!File.Exists(path)) {
+                return false;
+            }
+
+            try
+            {
+                using var stream = File.OpenRead(path);
+                using var reader = new BinaryReader(stream);
+
+                if (reader.ReadString() != FontAtlasCacheMagic || reader.ReadInt32() != FontAtlasCacheVersion) {
+                    return false;
+                }
+
+                int atlasWidth = reader.ReadInt32();
+                int atlasHeight = reader.ReadInt32();
+                var renderMode = (RenderModes)reader.ReadInt32();
+                int glyphCount = reader.ReadInt32();
+                int expectedTextureLength = checked(font_atlas_width * font_atlas_height);
+
+                if (atlasWidth != font_atlas_width || atlasHeight != font_atlas_height ||
+                    renderMode != font_renderMode || glyphCount != CharacterCount) {
+                    return false;
+                }
+
+                var faceInfo = new FT_FaceInfo
+                {
+                    name = reader.ReadString(),
+                    pointSize = reader.ReadInt32(),
+                    padding = reader.ReadInt32(),
+                    lineHeight = reader.ReadSingle(),
+                    baseline = reader.ReadSingle(),
+                    ascender = reader.ReadSingle(),
+                    descender = reader.ReadSingle(),
+                    centerLine = reader.ReadSingle(),
+                    underline = reader.ReadSingle(),
+                    underlineThickness = reader.ReadSingle(),
+                    characterCount = reader.ReadInt32(),
+                    atlasWidth = reader.ReadInt32(),
+                    atlasHeight = reader.ReadInt32()
+                };
+
+                var glyphInfo = new FT_GlyphInfo[glyphCount];
+                for (int i = 0; i < glyphInfo.Length; i++)
+                {
+                    glyphInfo[i].id = reader.ReadInt32();
+                    glyphInfo[i].x = reader.ReadSingle();
+                    glyphInfo[i].y = reader.ReadSingle();
+                    glyphInfo[i].width = reader.ReadSingle();
+                    glyphInfo[i].height = reader.ReadSingle();
+                    glyphInfo[i].xOffset = reader.ReadSingle();
+                    glyphInfo[i].yOffset = reader.ReadSingle();
+                    glyphInfo[i].xAdvance = reader.ReadSingle();
+                }
+
+                int kerningCount = reader.ReadInt32();
+                if (kerningCount < 0 || kerningCount > MaxKerningPairCount) {
+                    return false;
+                }
+
+                var kerningTable = new KerningTable { kerningPairs = new List<KerningPair>(kerningCount) };
+                for (int i = 0; i < kerningCount; i++)
+                {
+                    kerningTable.kerningPairs.Add(new KerningPair(
+                        reader.ReadUInt32(), reader.ReadUInt32(), reader.ReadSingle()));
+                }
+
+                if (reader.ReadInt32() != expectedTextureLength) {
+                    return false;
+                }
+
+                byte[] textureBuffer = reader.ReadBytes(expectedTextureLength);
+                if (textureBuffer.Length != expectedTextureLength || stream.Position != stream.Length) {
+                    return false;
+                }
+
+                m_font_faceInfo = faceInfo;
+                m_font_glyphInfo = glyphInfo;
+                m_kerningTable = kerningTable;
+                m_character_Count = glyphCount;
+                m_texture_buffer = textureBuffer;
+                isRenderingDone = true;
+                return true;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+        }
+
+        public void SaveFontAtlasCache(string path)
+        {
+            if (m_texture_buffer == null || m_font_glyphInfo == null) {
+                throw new InvalidOperationException("A font atlas must be generated before it can be cached.");
+            }
+
+            string directory = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(directory);
+            string temporaryPath = path + ".tmp";
+
+            try
+            {
+                using (var stream = File.Create(temporaryPath))
+                using (var writer = new BinaryWriter(stream))
+                {
+                    writer.Write(FontAtlasCacheMagic);
+                    writer.Write(FontAtlasCacheVersion);
+                    writer.Write(font_atlas_width);
+                    writer.Write(font_atlas_height);
+                    writer.Write((int)font_renderMode);
+                    writer.Write(m_font_glyphInfo.Length);
+
+                    writer.Write(m_font_faceInfo.name ?? string.Empty);
+                    writer.Write(m_font_faceInfo.pointSize);
+                    writer.Write(m_font_faceInfo.padding);
+                    writer.Write(m_font_faceInfo.lineHeight);
+                    writer.Write(m_font_faceInfo.baseline);
+                    writer.Write(m_font_faceInfo.ascender);
+                    writer.Write(m_font_faceInfo.descender);
+                    writer.Write(m_font_faceInfo.centerLine);
+                    writer.Write(m_font_faceInfo.underline);
+                    writer.Write(m_font_faceInfo.underlineThickness);
+                    writer.Write(m_font_faceInfo.characterCount);
+                    writer.Write(m_font_faceInfo.atlasWidth);
+                    writer.Write(m_font_faceInfo.atlasHeight);
+
+                    foreach (var glyph in m_font_glyphInfo)
+                    {
+                        writer.Write(glyph.id);
+                        writer.Write(glyph.x);
+                        writer.Write(glyph.y);
+                        writer.Write(glyph.width);
+                        writer.Write(glyph.height);
+                        writer.Write(glyph.xOffset);
+                        writer.Write(glyph.yOffset);
+                        writer.Write(glyph.xAdvance);
+                    }
+
+                    var kerningPairs = m_kerningTable?.kerningPairs ?? new List<KerningPair>();
+                    writer.Write(kerningPairs.Count);
+                    foreach (var pair in kerningPairs)
+                    {
+                        writer.Write(pair.firstGlyph);
+                        writer.Write(pair.secondGlyph);
+                        writer.Write(pair.xOffset);
+                    }
+
+                    writer.Write(m_texture_buffer.Length);
+                    writer.Write(m_texture_buffer);
+                }
+
+                if (File.Exists(path)) {
+                    File.Delete(path);
+                }
+                File.Move(temporaryPath, path);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath)) {
+                    File.Delete(temporaryPath);
+                }
+            }
         }
 
         // Image Down Sampling Fields
@@ -609,11 +788,15 @@ namespace TMPro.EditorUtilities
         // Get Kerning Pairs
         public KerningTable GetKerningTable(string fontFilePath, int pointSize)
         {
+            if (m_kerningTable != null) {
+                return m_kerningTable;
+            }
+
             KerningTable kerningInfo = new KerningTable();
             kerningInfo.kerningPairs = new List<KerningPair>();
 
             // Temporary Array to hold the kerning pairs from the Native Plug-in.
-            FT_KerningPair[] kerningPairs = new FT_KerningPair[7500];
+            FT_KerningPair[] kerningPairs = new FT_KerningPair[MaxKerningPairCount];
 
             int kpCount = TMPro_FontPlugin.FT_GetKerningPairs(fontFilePath, m_kerningSet, m_kerningSet.Length, kerningPairs);
 
@@ -632,7 +815,8 @@ namespace TMPro.EditorUtilities
 
             }
 
-            return kerningInfo;
+            m_kerningTable = kerningInfo;
+            return m_kerningTable;
         }
     }
 }

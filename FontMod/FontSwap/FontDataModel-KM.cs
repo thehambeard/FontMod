@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using Kingmaker.Localization;
 using TMPro;
 using TMPro.EditorUtilities;
@@ -13,6 +15,7 @@ namespace FontMod.FontSwap;
 [Serializable]
 public class FontDataModel
 {
+    private const int FontAtlasCacheKeyVersion = 2;
     private static string requiredCharacters;
 
     [JsonProperty]
@@ -27,7 +30,8 @@ public class FontDataModel
         get
         {
             // We're lazy because large fonts (e.g. chinese fonts) can take a lot of time
-            if (tmpFontAsset == null && !IsIgnored && !string.IsNullOrEmpty(FontPath)) {
+            if (!fontAssetCreationAttempted && !IsIgnored && !string.IsNullOrEmpty(FontPath)) {
+                fontAssetCreationAttempted = true;
                 tmpFontAsset = CreateFontAsset(FontPath);
             }
 
@@ -36,6 +40,7 @@ public class FontDataModel
     }
 
     private TMP_FontAsset tmpFontAsset;
+    private bool fontAssetCreationAttempted;
 
     private FontDataModel() { }
 
@@ -87,10 +92,23 @@ public class FontDataModel
 
             var create = new TMPro_FontAssetCreatorWindow();
             create.font_TTF_path = fontPath;
-            create.SetCharacterSet(GetRequiredCharacters());
+            var characters = GetRequiredCharacters();
+            create.SetCharacterSet(characters);
             var renderType = create.UseBitmapFontAsset ? "bitmap" : "SDF";
-            Main.Logger.Log($"Generating {create.CharacterCount} glyphs for {name} in a {create.AtlasSize}x{create.AtlasSize} {renderType} atlas.");
-            create.GenerateFontAtlas();
+            var cachePath = GetFontAtlasCachePath(fontPath, characters, create);
+            bool generated = false;
+
+            if (create.TryLoadFontAtlasCache(cachePath))
+            {
+                Main.Logger.Log($"Loaded cached {renderType} atlas for {name}.");
+            }
+            else
+            {
+                generated = true;
+                Main.Logger.Log($"Generating {create.CharacterCount} glyphs for {name} in a {create.AtlasSize}x{create.AtlasSize} {renderType} atlas.");
+                create.GenerateFontAtlas();
+            }
+
             create.CreateFontTexture();
 
             asset = create.UseBitmapFontAsset ? create.Save_Normal_FontAsset() : create.Save_SDF_FontAsset();
@@ -99,6 +117,18 @@ public class FontDataModel
                 throw new NullReferenceException($"Creation of TMP_FontAsset failed for font {name}");
             asset.name = name;
             asset.ReadFontDefinition();
+
+            if (generated)
+            {
+                try
+                {
+                    create.SaveFontAtlasCache(cachePath);
+                }
+                catch (Exception e)
+                {
+                    Main.Logger.Warning($"Could not cache the generated atlas for {name}: {e.Message}");
+                }
+            }
 
             Main.Logger.Log($"Created font asset {asset.name}");
 
@@ -110,6 +140,29 @@ public class FontDataModel
         }
 
         return asset;
+    }
+
+    private static string GetFontAtlasCachePath(string fontPath, string characters, TMPro_FontAssetCreatorWindow creator)
+    {
+        byte[] fontHash;
+        using (var stream = File.OpenRead(fontPath)) {
+            using var hash = SHA256.Create();
+            fontHash = hash.ComputeHash(stream);
+        }
+
+        string settings = $"{FontAtlasCacheKeyVersion}\n{creator.AtlasSize}\n{creator.UseBitmapFontAsset}\n{characters}";
+        byte[] settingsBytes = Encoding.UTF8.GetBytes(settings);
+        byte[] keyData = new byte[fontHash.Length + settingsBytes.Length];
+        Buffer.BlockCopy(fontHash, 0, keyData, 0, fontHash.Length);
+        Buffer.BlockCopy(settingsBytes, 0, keyData, fontHash.Length, settingsBytes.Length);
+
+        byte[] cacheHash;
+        using (var hash = SHA256.Create()) {
+            cacheHash = hash.ComputeHash(keyData);
+        }
+
+        string cacheKey = BitConverter.ToString(cacheHash).Replace("-", "").ToLowerInvariant();
+        return Path.Combine(Main.ModEntry.Path, "Cache", cacheKey + ".fontatlas");
     }
 
     private static string GetRequiredCharacters()
@@ -138,7 +191,6 @@ public class FontDataModel
         return requiredCharacters;
     }
 
-    // Caching?
     private static void AddLocalizationCharacters(HashSet<char> characters, LocalizationPack pack)
     {
         if (pack?.Strings == null) {

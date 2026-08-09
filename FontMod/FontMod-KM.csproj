@@ -28,7 +28,7 @@
     <None Include="Info.json" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
     <None Update="Fonts\Ldfcomicsans-jj7l.ttf" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fonts\No Name Sans.ttf" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="TMPro_Plugin.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="TMP_Utils\TMPro_Plugin.dll" CopyToOutputDirectory="PreserveNewest" Link="TMPro_Plugin.dll" />
   </ItemGroup>
   
   <Target Name="Deploy" AfterTargets="Build">
