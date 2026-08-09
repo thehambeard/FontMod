@@ -368,6 +368,9 @@ namespace TMPro.EditorUtilities
 
             string tex_FileName = Path.GetFileNameWithoutExtension(font_TTF_path);
 
+            // Name is included in Hash
+            font_asset.name = tex_FileName;
+
             //Set Font Asset Type
             font_asset.fontAssetType = TMP_FontAsset.FontAssetTypes.Bitmap;
 
@@ -416,6 +419,9 @@ namespace TMPro.EditorUtilities
             var font_asset = ScriptableObject.CreateInstance<TMP_FontAsset>(); // Create new TextMeshPro Font Asset.
 
             string tex_FileName = Path.GetFileNameWithoutExtension(font_TTF_path);
+
+            // Name is included in Hash
+            font_asset.name = tex_FileName;
 
             // Reference to the source font file
             //font_asset.sourceFontFile = font_TTF as Font;
