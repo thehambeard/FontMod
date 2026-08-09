@@ -79,6 +79,10 @@ namespace TMPro.EditorUtilities
         private int font_atlas_width = 512;
         private int font_atlas_height = 512;
 
+        public int CharacterCount => characterSequence.Distinct().Count();
+        public int AtlasSize => font_atlas_width;
+        public bool UseBitmapFontAsset { get; private set; }
+
         //private int m_shaderSelectionIndex;
         //private Shader m_shaderSelection;
         //private string[] m_availableShaderNames;
@@ -98,6 +102,36 @@ namespace TMPro.EditorUtilities
         private Texture2D m_destination_Atlas;
         private bool includeKerningPairs = true;
         private int[] m_kerningSet;
+
+        // Allocate a large enough atlas.
+        // The sizes are guesses; a smaller atlas might be good enough?
+        public void SetCharacterSet(string characters)
+        {
+            if (string.IsNullOrEmpty(characters)) {
+                return;
+            }
+
+            characterSequence = new string([.. characters.Distinct().OrderBy(c => c)]);
+            font_CharacterSet_Selection = 7;
+
+            int characterCount = characterSequence.Length;
+            // Large localized sets are prohibitively slow ._.
+            // Game startup took like 5 minutes with the normal renderer
+            UseBitmapFontAsset = characterCount > 512;
+            font_renderMode = UseBitmapFontAsset ? RenderModes.Smooth : RenderModes.DistanceField16;
+
+            int atlasSize = characterCount switch
+            {
+                <= 128 => 512,
+                <= 512 => 1024,
+                <= 2048 => 2048,
+                <= 8192 => 4096,
+                _ => 8192
+            };
+
+            font_atlas_width = atlasSize;
+            font_atlas_height = atlasSize;
+        }
 
         // Image Down Sampling Fields
         //private Texture2D sdf_Atlas;
