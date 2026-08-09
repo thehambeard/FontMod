@@ -1,10 +1,12 @@
 ﻿using FontMod.Utility;
 using HarmonyLib;
 using Kingmaker.UI.Common;
+#if KM
+using Kingmaker.Localization;
+#endif
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 namespace FontMod.FontSwap;
@@ -12,6 +14,22 @@ namespace FontMod.FontSwap;
 [HarmonyPatch]
 public static class TMPTestPach
 {
+    private static bool CanSwapFonts
+    {
+        get
+        {
+#if KM
+            return LocalizationManager.CurrentPack != null;
+#else
+            return true;
+#endif
+        }
+    }
+
+    private static TMP_FontAsset GetMappedFontAsset(TMP_FontAsset fontAsset)
+    {
+        return fontAsset == null || !CanSwapFonts ? fontAsset : FontMapper.Instance.GetFontMapped(fontAsset);
+    }
 
 #if RT
     static bool _afterDelay = false;
@@ -31,8 +49,7 @@ public static class TMPTestPach
         if (!_afterDelay)
             return;
 #endif
-        if (__instance.m_fontAsset != null)
-            __instance.m_fontAsset = FontMapper.Instance.GetFontMapped(__instance.m_fontAsset);
+        __instance.m_fontAsset = GetMappedFontAsset(__instance.m_fontAsset);
     }
 
     [HarmonyPatch(typeof(MaterialReferenceManager), nameof(MaterialReferenceManager.TryGetFontAsset))]
@@ -45,8 +62,7 @@ public static class TMPTestPach
             return;
 #endif
 
-        if (fontAsset != null)
-            fontAsset = FontMapper.Instance.GetFontMapped(fontAsset);
+        fontAsset = GetMappedFontAsset(fontAsset);
     }
 
     [HarmonyPatch(typeof(TMP_Text), nameof(TMP_Text.ValidateHtmlTag))]
@@ -68,9 +84,8 @@ public static class TMPTestPach
 
             var patchCodes = new CodeInstruction[]
             {
-                new(OpCodes.Call, AccessTools.PropertyGetter(typeof(FontMapper), nameof(FontMapper.Instance))),
                 new(OpCodes.Ldloc_S, ldlocs.operand),
-                new(OpCodes.Callvirt, AccessTools.Method(typeof(FontMapper), nameof(FontMapper.GetFontMapped))),
+                new(OpCodes.Call, AccessTools.Method(typeof(TMPTestPach), nameof(GetMappedFontAsset))),
                 new(OpCodes.Stloc_S, ldlocs.operand)
             };
 
@@ -91,12 +106,29 @@ public static class TMPTestPach
     [HarmonyPrefix]
     static void GetSaberBookFormatPatch(string name, Color color, int size, ref Material material)
     {
-        if (material == null)
+        if (material == null || !CanSwapFonts)
             return;
 
-        material = FontMapper.Instance.FontMappings.ContainsKey("Saber_Dist32") ?
-            FontMapper.Instance.FontMappings["Saber_Dist32"].TMP_FontAsset.material :
-            FontMapper.Instance.DefaultFontMapping.TMP_FontAsset.material;
+        FontMapper mapper = FontMapper.Instance;
+        FontDataModel mapping;
+
+        if (mapper.FontMappings.TryGetValue("Saber_Dist32", out mapping))
+        {
+            // An ignored mapping means that both the original font and its original material must pass through untouched.
+            // => Otherwise e.g. nameplate disappears?
+            if (mapping.IsIgnored) {
+                return;
+            }
+        }
+        else
+        {
+            mapping = mapper.DefaultFontMapping;
+        }
+
+        Material mappedMaterial = mapping?.TMP_FontAsset?.material;
+        if (mappedMaterial != null) {
+            material = mappedMaterial;
+        }
     }
 #endif
 }
